@@ -1,0 +1,247 @@
+openapi: 3.1.0
+info:
+  title: Contact Management API
+  description: Contact Management API
+  version: 1.0.0
+servers:
+  - url: 'https://{{environment}}.contact/api/v1'
+    variables:
+      environment:
+        default: dev
+        enum:
+          - dev
+          - qa
+          - prod
+paths:
+  /users:
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                name:
+                  type: string
+            examples:
+              user:
+                summary: User example
+                value:
+                  username: chuluq
+                  password: rahasia
+                  name: Choirul Chuluq
+      responses:
+        200:
+          description: a user to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              examples:
+                user:
+                  value:
+                    data:
+                      username: chuluq
+                      name: Choirul Chuluq
+
+        400:
+          description: error to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error:
+                  value:
+                    errors: Username must not blank
+  /users/login:
+    post:
+      tags:
+        - Users
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+            examples:
+              user:
+                value:
+                  username: chuluq
+                  password: rahasia
+      responses:
+        200:
+          description: a user to be returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      name:
+                        type: string
+                      token:
+                        type: string
+              examples:
+                user:
+                  value:
+                    data:
+                      username: chuluq
+                      name: Choirul Chuluq
+                      token: uuid
+        400:
+          description: error to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error:
+                  value:
+                    errors: Username or password is wrong
+  /users/current:
+    get:
+      security:
+        - Auth: [ ]
+      tags:
+        - Users
+      summary: Get authenticated user data
+      responses:
+        200:
+          description: a user to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              examples:
+                user:
+                  value:
+                    data:
+                      username: chuluq
+                      name: Choirul Chuluq
+        401:
+          description: error to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error:
+                  value:
+                    errors: Unauthorized
+    patch:
+      security:
+        - Auth: [ ]
+      tags:
+        - Users
+      summary: Update user data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                name:
+                  type: string
+            examples:
+              user:
+                value:
+                  password: rahasia
+                  name: Choirul Chuluq
+      responses:
+        200:
+          description: a user to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              examples:
+                user:
+                  value:
+                    data:
+                      username: chuluq
+                      name: Choirul Chuluq
+        401:
+          description: error to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error:
+                  value:
+                    errors: Unauthorized
+    delete:
+      security:
+        - Auth: [ ]
+      tags:
+        - Users
+      summary: Logout
+      responses:
+        200:
+          description: success logout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+              examples:
+                success:
+                  value:
+                    data: OK
+        401:
+          description: error to be returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                error:
+                  value:
+                    errors: Unauthorized
+components:
+  securitySchemes:
+    Auth:
+      description: Authorization
+      type: apiKey
+      in: header
+      name: X-API-TOKEN
+  schemas:
+    User:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            username:
+              type: string
+            name:
+              type: string
+    Error:
+      type: object
+      properties:
+        errors:
+          type: string
