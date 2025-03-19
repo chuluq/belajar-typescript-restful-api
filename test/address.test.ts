@@ -117,3 +117,90 @@ describe("GET /api/contacts/:contactId/addresses/:addressId", () => {
         expect(response.body.errors).toBeDefined();
     });
 });
+
+describe("PUT /api/contacts/:contactId/addresses/:addressId", () => {
+    beforeEach(async () => {
+        await UserTest.create();
+        await ContactTest.create();
+        await AddressTest.create();
+    });
+
+    afterEach(async () => {
+        await AddressTest.deleteAll();
+        await ContactTest.deleteAll();
+        await UserTest.delete();
+    });
+
+    it("should be able to update address", async () => {
+        const contact = await ContactTest.get();
+        const address = await AddressTest.get();
+
+        const response = await supertest(web).put(`/api/contacts/${contact.id}/addresses/${address.id}`).set("X-API-TOKEN", "test").send({
+            street: "Jalan",
+            city: "Kota",
+            province: "Provinsi",
+            country: "Negara",
+            postal_code: "4444"
+        });
+
+        logger.debug(response.body);
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.id).toBe(address.id);
+        expect(response.body.data.street).toBe("Jalan");
+        expect(response.body.data.city).toBe("Kota");
+        expect(response.body.data.province).toBe("Provinsi");
+        expect(response.body.data.country).toBe("Negara");
+        expect(response.body.data.postal_code).toBe("4444");
+    });
+
+    it("should reject update address if request is invalid", async () => {
+        const contact = await ContactTest.get();
+        const address = await AddressTest.get();
+
+        const response = await supertest(web).put(`/api/contacts/${contact.id}/addresses/${address.id}`).set("X-API-TOKEN", "test").send({
+            street: "Jalan",
+            city: "Kota",
+            province: "Provinsi",
+            country: "",
+            postal_code: ""
+        });
+
+        logger.debug(response.body);
+        expect(response.statusCode).toBe(400);
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it("should reject update address if address is not found", async () => {
+        const contact = await ContactTest.get();
+        const address = await AddressTest.get();
+
+        const response = await supertest(web).put(`/api/contacts/${contact.id}/addresses/${address.id + 1}`).set("X-API-TOKEN", "test").send({
+            street: "Jalan",
+            city: "Kota",
+            province: "Provinsi",
+            country: "Negara",
+            postal_code: "4444"
+        });
+
+        logger.debug(response.body);
+        expect(response.statusCode).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it("should reject update address if contact is not found", async () => {
+        const contact = await ContactTest.get();
+        const address = await AddressTest.get();
+
+        const response = await supertest(web).put(`/api/contacts/${contact.id + 1}/addresses/${address.id}`).set("X-API-TOKEN", "test").send({
+            street: "Jalan",
+            city: "Kota",
+            province: "Provinsi",
+            country: "Negara",
+            postal_code: "4444"
+        });
+
+        logger.debug(response.body);
+        expect(response.statusCode).toBe(404);
+        expect(response.body.errors).toBeDefined();
+    });
+});
